@@ -1,0 +1,18 @@
+{
+  "name": "baagee/process-task",
+  "description": "php process task library",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "BaAGee",
+      "email": "2274313786@qq.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "BaAGee\\": "src/"
+    }
+  },
+  "require": {}
+}
