@@ -70,11 +70,12 @@ class ProcessTask
             foreach ($data as $k => $v) {
                 if (!is_array($v) && !is_object($v)) {
                     $where .= ' --' . $k . '=' . $v;
+                } else {
+                    throw new \Exception('参数不合法，不能是数组或者对象');
                 }
             }
             $command = PHP_BINARY . ' ' . $script_path . $where . ' &';
             $handle  = popen($command, 'w');
-            $handle  = false;
             if ($handle == false) {
                 break;
             } else {
