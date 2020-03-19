@@ -11,7 +11,7 @@
   ],
   "autoload": {
     "psr-4": {
-      "BaAGee\\": "src/"
+      "BaAGee\\AsyncTask\\": "src/"
     }
   },
   "require": {}

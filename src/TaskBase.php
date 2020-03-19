@@ -7,57 +7,53 @@
  * Time: 下午5:51
  */
 
-namespace BaAGee;
+namespace BaAGee\AsyncTask;
 /**
  * Class TaskBase
- * @package BaAGee
+ * @package BaAGee\AsyncTask
  */
 abstract class TaskBase
 {
-    /**
-     * @var array
-     */
-    protected $_receive_fields = [];
-    /**
-     * @var array
-     */
-    protected $_receive_data = [];
-    /**
-     * @var int|mixed
-     */
-    protected $_start_time = 0;
+    protected $paramKeys     = [];
+    protected $receiveParams = [];
+    protected $startTime     = 0.0;
+    protected $endTime       = 0.0;
 
-    /**
-     * TaskBase constructor.
-     */
     public function __construct()
     {
-        $this->_start_time   = microtime(true);
-        $this->_receive_data = getopt('', array_unique(array_merge($this->_receive_fields, ['_process_id:', '_task_name:'])));
-        $this->trace('Start time=' . date('Y-m-d H:i:s'));
-        $this->trace('Receive data:' . json_encode($this->_receive_data, JSON_UNESCAPED_UNICODE));
+        $this->startTime     = microtime(true);
+        $this->receiveParams = getopt('', $this->paramKeys);
+        array_walk($this->receiveParams, function (&$v, $k) {
+            $v = urldecode($v);
+        });
     }
 
     /**
-     * @return mixed
+     * @return float
      */
-    abstract public function run();
-
-    /**
-     *
-     */
-    public function __destruct()
+    public function getStartTime()
     {
-        $this->trace(sprintf('Over time=%s used=%f', date('Y-m-d H:i:s'), microtime(true) - $this->_start_time));
+        return $this->startTime;
     }
 
     /**
-     * @param $msg
+     * @return float
      */
-    protected function trace($msg)
+    public function getEndTime()
     {
-        // todo 写入log
-//        $msg = sprintf('Task name [%s] Process [%d] : %s', $this->_receive_data['_task_name'], $this->_receive_data['_process_id'], $msg);
-//        echo $msg . PHP_EOL;
+        return $this->endTime;
+    }
+
+    abstract protected function main($params);
+
+    final public function run()
+    {
+        try {
+            return $this->main($this->receiveParams);
+        } catch (\Exception $e) {
+            throw $e;
+        } finally {
+            $this->endTime = microtime(true);
+        }
     }
 }
