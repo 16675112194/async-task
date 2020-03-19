@@ -70,7 +70,7 @@ final class TaskScheduler
             }
         }
         $command = PHP_BINARY . ' ' . $file . $where . ' &';
-        echo $command . PHP_EOL;
+        // echo $command . PHP_EOL;
         $handle = popen($command, 'w');
         if ($handle == false) {
             return false;
