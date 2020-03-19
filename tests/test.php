@@ -6,7 +6,12 @@
  * Time: 下午11:43
  */
 include __DIR__ . '/../vendor/autoload.php';
-include __DIR__ . '/TestTask.php';
-$task = \BaAGee\AsyncTask\TaskScheduler::getInstance();
-$res  = $task->runTask(\Test\TestTask::class, ['name' => '到的', 'age' => mt_rand(10, 19)]);
+
+$res = \BaAGee\AsyncTask\TaskScheduler::getInstance()
+    ->runTask(
+        \BaAGee\AsyncTask\Test\TestTask::class,
+        [
+            'name' => '到的', 'age' => mt_rand(10, 19)
+        ]
+    );
 var_dump($res);

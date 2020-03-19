@@ -47,27 +47,28 @@ final class TaskScheduler
     }
 
     /**
-     * 执行任务
-     * @param string $taskClassName 任务类
-     * @param array  $params        参数
+     * 执行任务类
+     * @param string $taskClassName
+     * @param array  $params
      * @return bool
-     * @throws \ReflectionException
+     * @throws \Exception
      */
-    public function runTask($taskClassName, $params = [])
+    public function runTask(string $taskClassName, $params = [])
     {
         //判断是不是继承了task base
         if (!(new $taskClassName() instanceof TaskBase)) {
             throw new \Exception('没有继承:' . TaskBase::class);
         }
-        $refClass = new \ReflectionClass($taskClassName);
-        $file     = $refClass->getFileName();
-        $where    = ' ';
-        foreach ($params as $k => $v) {
-            if (!is_array($v) && !is_object($v)) {
-                $where .= ' --' . $k . '=' . urlencode($v);
-            } else {
-                throw new \Exception('参数不合法，不能是数组或者对象');
-            }
+        $file  = realpath(__DIR__ . DIRECTORY_SEPARATOR . 'run.php');
+        $where = ' ';
+
+        $newParams = [
+            '_task_class_name_'   => $taskClassName,
+            '_task_params_'       => json_encode($params),
+            '_composer_autoload_' => $this->findComposerAutoloadFile()
+        ];
+        foreach ($newParams as $k => $v) {
+            $where .= ' --' . $k . '=' . urlencode($v);
         }
         $command = PHP_BINARY . ' ' . $file . $where . ' &';
         // echo $command . PHP_EOL;
@@ -78,5 +79,21 @@ final class TaskScheduler
             pclose($handle);
             return true;
         }
+    }
+
+    /**
+     * 寻找composer autoload.php 文件
+     * @return string
+     * @throws \Exception
+     */
+    protected function findComposerAutoloadFile()
+    {
+        $requireFiles = get_required_files();
+        foreach ($requireFiles as $requireFile) {
+            if (basename($requireFile) === 'autoload.php') {
+                return $requireFile;
+            }
+        }
+        throw new \Exception("找不到composer的autoload.php");
     }
 }

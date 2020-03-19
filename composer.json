@@ -1,5 +1,5 @@
 {
-  "name": "baagee/process-task",
+  "name": "baagee/async-task",
   "description": "php process task library",
   "type": "library",
   "license": "MIT",

@@ -14,46 +14,5 @@ namespace BaAGee\AsyncTask;
  */
 abstract class TaskBase
 {
-    protected $paramKeys     = [];
-    protected $receiveParams = [];
-    protected $startTime     = 0.0;
-    protected $endTime       = 0.0;
-
-    public function __construct()
-    {
-        $this->startTime     = microtime(true);
-        $this->receiveParams = getopt('', $this->paramKeys);
-        array_walk($this->receiveParams, function (&$v, $k) {
-            $v = urldecode($v);
-        });
-    }
-
-    /**
-     * @return float
-     */
-    public function getStartTime()
-    {
-        return $this->startTime;
-    }
-
-    /**
-     * @return float
-     */
-    public function getEndTime()
-    {
-        return $this->endTime;
-    }
-
-    abstract protected function main($params);
-
-    final public function run()
-    {
-        try {
-            return $this->main($this->receiveParams);
-        } catch (\Exception $e) {
-            throw $e;
-        } finally {
-            $this->endTime = microtime(true);
-        }
-    }
+    abstract public function main($params = []);
 }
