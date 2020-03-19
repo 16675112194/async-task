@@ -14,5 +14,5 @@ namespace BaAGee\AsyncTask;
  */
 abstract class TaskBase
 {
-    abstract public function main($params = []);
+    abstract public function run($params = []);
 }

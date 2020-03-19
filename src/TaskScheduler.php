@@ -47,16 +47,35 @@ final class TaskScheduler
     }
 
     /**
+     * 验证参数是不是标量
+     * @param $params
+     * @throws \Exception
+     */
+    protected function checkParams($params)
+    {
+        foreach ($params as $k => $v) {
+            if (is_string($v) || is_bool($v) || is_integer($v) || is_float($v)) {
+
+            } else {
+                throw new \Exception('参数不合法，只允许标量数据类型');
+            }
+        }
+    }
+
+    /**
      * 执行任务类
      * @param string $taskClassName
      * @param array  $params
      * @return bool
      * @throws \Exception
      */
-    public function runTask(string $taskClassName, $params = [])
+    public function runTask(string $taskClassName, array $params = [])
     {
+        if (!empty($params)) {
+            $this->checkParams($params);
+        }
         //判断是不是继承了task base
-        if (!(new $taskClassName() instanceof TaskBase)) {
+        if (!is_subclass_of($taskClassName, TaskBase::class)) {
             throw new \Exception('没有继承:' . TaskBase::class);
         }
         $file  = realpath(__DIR__ . DIRECTORY_SEPARATOR . 'run.php');
@@ -70,7 +89,7 @@ final class TaskScheduler
         foreach ($newParams as $k => $v) {
             $where .= ' --' . $k . '=' . urlencode($v);
         }
-        $command = PHP_BINARY . ' ' . $file . $where . ' &';
+        $command = PHP_BINDIR . DIRECTORY_SEPARATOR . 'php ' . $file . $where . ' &';
         // echo $command . PHP_EOL;
         $handle = popen($command, 'w');
         if ($handle == false) {

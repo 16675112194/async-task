@@ -18,7 +18,7 @@ $taskParamsArr = json_decode($receiveParams['_task_params_'], true) ?? [];
  */
 try {
     $task = new $receiveParams['_task_class_name_']();
-    $task->main($taskParamsArr);
+    $task->run($taskParamsArr);
 } catch (\Exception $e) {
     error_log(sprintf("Task error:%s file:%s line:%d", $e->getMessage(), $e->getFile(), $e->getLine()));
 }

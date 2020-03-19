@@ -12,7 +12,7 @@ use BaAGee\AsyncTask\TaskBase;
 
 class TestTask extends TaskBase
 {
-    public function main($params = [])
+    public function run($params = [])
     {
         file_put_contents(getcwd() . "/test_task", var_export($params, true));
     }
