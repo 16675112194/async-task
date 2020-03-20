@@ -7,7 +7,7 @@
  */
 include __DIR__ . '/../vendor/autoload.php';
 
-\BaAGee\AsyncTask\TaskScheduler::init( 30);
+\BaAGee\AsyncTask\TaskScheduler::init('./lock', 30);
 $task = \BaAGee\AsyncTask\TaskScheduler::getInstance();
 for ($i = 1; $i <= 55; $i++) {
     $res = $task->runTask(
