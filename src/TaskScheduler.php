@@ -18,11 +18,11 @@ final class TaskScheduler
     /**
      * 繁忙错误码
      */
-    public const           SYSTEM_BUSY = 10010;
+    public const SYSTEM_BUSY = 10010;
     /**
      * 任务执行脚本
      */
-    protected const        TASK_RUN_SCRIPT = __DIR__ . DIRECTORY_SEPARATOR . 'task_run.php';
+    protected const TASK_RUN_SCRIPT = __DIR__ . DIRECTORY_SEPARATOR . 'task_run.php';
 
     /**
      * @var bool
@@ -32,6 +32,10 @@ final class TaskScheduler
      * @var string
      */
     protected static $lockFile = '';
+    /**
+     * @var string composer autoload.php文件
+     */
+    protected static $composerAutoloadFile = '';
     /**
      * @var int
      */
@@ -61,6 +65,16 @@ final class TaskScheduler
         return false;
     }
 
+    /**
+     * @throws \Exception
+     */
+    protected static function checkInit()
+    {
+        if (self::$isInit == false) {
+            throw new \Exception(__CLASS__ . ' not initialized');
+        }
+    }
+
 
     /**
      * @return TaskScheduler|null
@@ -68,9 +82,7 @@ final class TaskScheduler
      */
     public static function getInstance()
     {
-        if (self::$isInit == false) {
-            throw new \Exception(__CLASS__ . ' not initialized');
-        }
+        self::checkInit();
         if (self::$self === null || !(self::$self instanceof TaskScheduler)) {
             self::$self = new self();
         }
@@ -117,9 +129,7 @@ final class TaskScheduler
      */
     public function runTask(string $taskClassName, array $params = [])
     {
-        if (self::$isInit == false) {
-            throw new \Exception(__CLASS__ . ' not initialized');
-        }
+        self::checkInit();
         list($getLock, $fh) = $this->getLock();
         if ($getLock) {
             if (!empty($params)) {
@@ -186,7 +196,7 @@ final class TaskScheduler
     /**
      * @return int
      */
-    public static function realCurrentTaskNumber()
+    protected static function realCurrentTaskNumber()
     {
         // $s1      = microtime(true);
         $command = new Command('ps -ef');
@@ -207,12 +217,17 @@ final class TaskScheduler
      */
     protected function findComposerAutoloadFile()
     {
-        $requireFiles = get_required_files();
-        foreach ($requireFiles as $requireFile) {
-            if (basename($requireFile) === 'autoload.php') {
-                return $requireFile;
+        if (empty(self::$composerAutoloadFile)) {
+            $requireFiles = get_required_files();
+            foreach ($requireFiles as $requireFile) {
+                if (basename($requireFile) === 'autoload.php') {
+                    self::$composerAutoloadFile = $requireFile;
+                    return $requireFile;
+                }
             }
+            throw new \Exception("找不到composer的autoload.php");
+        } else {
+            return self::$composerAutoloadFile;
         }
-        throw new \Exception("找不到composer的autoload.php");
     }
 }

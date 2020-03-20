@@ -9,12 +9,21 @@ include __DIR__ . '/../vendor/autoload.php';
 
 \BaAGee\AsyncTask\TaskScheduler::init('./lock', 30);
 $task = \BaAGee\AsyncTask\TaskScheduler::getInstance();
+
 for ($i = 1; $i <= 55; $i++) {
-    $res = $task->runTask(
-        \BaAGee\AsyncTask\Test\TestTask::class,
-        [
-            'name' => '到的', 'age' => mt_rand(10, 19)
-        ]
-    );
-    var_dump($i . ($res ? ' success' : ' failed'));
+    try {
+        $res = $task->runTask(
+            \BaAGee\AsyncTask\Test\TestTask::class,
+            [
+                'name' => 'task_' . $i, 'age' => mt_rand(10, 19)
+            ]
+        );
+        echo $i . ($res ? ' success' : ' failed') . PHP_EOL;
+    } catch (Exception $e) {
+        echo $i . ' failed' . PHP_EOL;
+        if ($e->getCode() == \BaAGee\AsyncTask\TaskScheduler::SYSTEM_BUSY) {
+            $res = false;
+            $i--;
+        }
+    }
 }
