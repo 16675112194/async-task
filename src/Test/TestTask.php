@@ -15,6 +15,6 @@ class TestTask extends TaskBase
     public function run($params = [])
     {
         sleep($params['age']);
-        file_put_contents(getcwd() . "/var/" . $params['name'], var_export($params, true), LOCK_EX);
+        file_put_contents(getcwd() . "/var/tmp/" . $params['name'], var_export($params, true), LOCK_EX);
     }
 }
