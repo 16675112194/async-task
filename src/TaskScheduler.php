@@ -202,6 +202,7 @@ final class TaskScheduler
         $command = new Command('ps -ef');
         $command->pipe(new Command('grep ' . self::TASK_RUN_SCRIPT))
             ->pipe(new Command('grep -v grep'))
+            ->pipe(new Command('grep -v "ps -ef"'))
             ->pipe(new Command('wc -l'));
 
         $ret = $command->popen('r');
