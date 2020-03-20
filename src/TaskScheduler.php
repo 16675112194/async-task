@@ -54,12 +54,10 @@ final class TaskScheduler
     public static function init(string $lockFile, int $maxTaskCount = 50)
     {
         if (self::$isInit === false) {
-            if (!is_file($lockFile)) {
-                fclose(fopen($lockFile, 'w'));
-            }
             self::$maxTaskCount = $maxTaskCount;
-            self::$lockFile     = realpath($lockFile);
-            self::$isInit       = true;
+            TaskCounter::setLockFile($lockFile);
+            self::$lockFile = realpath($lockFile);
+            self::$isInit   = true;
             return true;
         }
         return false;
@@ -122,93 +120,84 @@ final class TaskScheduler
 
     /**
      * 执行任务类
-     * @param string $taskClassName
-     * @param array  $params
-     * @return bool
+     * @param string $taskClassName 任务类名
+     * @param array  $params        参数
+     * @param bool   $blocking      是否阻塞 如果是true 会等待获得锁
+     *                              false不等待获得锁，直接执行失败返回false
+     * @return bool|false|string
      * @throws \Exception
      */
-    public function runTask(string $taskClassName, array $params = [])
+    public function runTask(string $taskClassName, array $params = [], bool $blocking = true)
     {
         self::checkInit();
-        list($getLock, $fh) = $this->getLock();
-        if ($getLock) {
-            if (!empty($params)) {
-                $this->checkParams($params);
-            }
-            //判断是不是继承了task base
-            if (!is_subclass_of($taskClassName, TaskBase::class)) {
-                throw new \Exception('没有继承:' . TaskBase::class);
-            }
+        $resource = TaskCounter::getLockResource();
+        $getLock  = TaskCounter::getLock($resource, $blocking);
+        $ret      = false;
+        if ($getLock) {//get lock
+            try {
+                if (!empty($params)) {
+                    $this->checkParams($params);
+                }
+                //判断是不是继承了task base
+                if (!is_subclass_of($taskClassName, TaskBase::class)) {
+                    throw new \Exception('没有继承:' . TaskBase::class);
+                }
 
-            $val = self::realCurrentTaskNumber();
-            if ($val >= self::$maxTaskCount) {
-                throw new \Exception("系统繁忙，请稍后再试", self::SYSTEM_BUSY);
+                $val = self::getCurrentTaskNumber();
+                if ($val >= self::$maxTaskCount) {
+                    throw new \Exception("系统繁忙，请稍后再试", self::SYSTEM_BUSY);
+                }
+                $newParams = [
+                    '_task_class_name_'   => $taskClassName,
+                    '_task_params_'       => json_encode($params),
+                    '_composer_autoload_' => $this->findComposerAutoloadFile(),
+                    '_lock_file_'         => self::$lockFile,
+                ];
+
+                $command = new Command(PHP_BINDIR . DIRECTORY_SEPARATOR . 'php ' . self::TASK_RUN_SCRIPT);
+                foreach ($newParams as $k => $v) {
+                    $where = '--' . $k . '=' . urlencode($v);
+                    $command->append($where);
+                }
+                $command->deamon();
+                // echo $command . PHP_EOL;
+
+                $ret = $command->popen('w');
+                if ($ret == true) {
+                    // 成功 加1
+                    TaskCounter::setValue($val + 1);
+                }
+                TaskCounter::unLock($resource);
+            } catch (\Exception $e) {
+                TaskCounter::unLock($resource);
+                TaskCounter::closeLock($resource);
+                throw $e;
             }
-
-            $newParams = [
-                '_task_class_name_'   => $taskClassName,
-                '_task_params_'       => json_encode($params),
-                '_composer_autoload_' => $this->findComposerAutoloadFile(),
-            ];
-
-            $command = new Command(PHP_BINDIR . DIRECTORY_SEPARATOR . 'php ' . self::TASK_RUN_SCRIPT);
-            foreach ($newParams as $k => $v) {
-                $where = '--' . $k . '=' . urlencode($v);
-                $command->append($where);
-            }
-            $command->deamon();
-            // echo $command . PHP_EOL;
-
-            $ret = $command->popen('w');
-            $this->releaseLock($fh);
         } else {
-            $ret = false;
+            //没有获得锁
+            // echo 'not get lock' . PHP_EOL;
         }
-        $this->closeLock($fh);
+        TaskCounter::closeLock($resource);
         return $ret;
-    }
-
-    /**
-     * @param resource $fh
-     */
-    protected function closeLock($fh)
-    {
-        fclose($fh);
-    }
-
-    /**
-     * @return array
-     */
-    protected function getLock()
-    {
-        $fh = fopen(self::$lockFile, 'w+');
-        return [flock($fh, LOCK_EX), $fh];
-    }
-
-    /**
-     * @param resource $fh
-     */
-    protected function releaseLock($fh)
-    {
-        flock($fh, LOCK_UN);
     }
 
     /**
      * @return int
      */
-    protected static function realCurrentTaskNumber()
+    protected static function getCurrentTaskNumber()
     {
-        // $s1      = microtime(true);
-        $command = new Command('ps -ef');
-        $command->pipe(new Command('grep ' . self::TASK_RUN_SCRIPT))
-            ->pipe(new Command('grep -v grep'))
-            ->pipe(new Command('grep -v "ps -ef"'))
-            ->pipe(new Command('wc -l'));
+        return TaskCounter::getValue();
+        /* // $s1      = microtime(true);
+         $command = new Command('ps -ef');
+         $command->pipe(new Command('grep ' . self::TASK_RUN_SCRIPT))
+             ->pipe(new Command('grep -v grep'))
+             ->pipe(new Command('grep -v "ps -ef"'))
+             ->pipe(new Command('wc -l'));
 
-        $ret = $command->popen('r');
-        // $s2  = microtime(true);
-        // var_dump(($s2 - $s1) * 1000);
-        return intval(trim($ret));
+         $ret = $command->popen('r');
+         // $s2  = microtime(true);
+         // var_dump(($s2 - $s1) * 1000);
+         return intval(trim($ret));*/
     }
 
     /**
