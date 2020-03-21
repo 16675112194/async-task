@@ -7,12 +7,12 @@
  */
 include __DIR__ . '/../vendor/autoload.php';
 
-// 初始化 最大同时运行任务40个
+// 初始化 最大同时运行任务20个
 \BaAGee\AsyncTask\TaskScheduler::init('./var/lock', 20);
 // 获取对象
 $task = \BaAGee\AsyncTask\TaskScheduler::getInstance();
 
-//循环创建111哥任务
+//循环创建40个任务
 for ($i = 1; $i <= 40; $i++) {
     try {
         $res = $task->runTask(
