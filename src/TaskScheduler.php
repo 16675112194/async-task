@@ -187,17 +187,29 @@ final class TaskScheduler
     protected static function getCurrentTaskNumber()
     {
         return TaskCounter::getValue();
-        /* // $s1      = microtime(true);
-         $command = new Command('ps -ef');
-         $command->pipe(new Command('grep ' . self::TASK_RUN_SCRIPT))
-             ->pipe(new Command('grep -v grep'))
-             ->pipe(new Command('grep -v "ps -ef"'))
-             ->pipe(new Command('wc -l'));
+    }
 
-         $ret = $command->popen('r');
-         // $s2  = microtime(true);
-         // var_dump(($s2 - $s1) * 1000);
-         return intval(trim($ret));*/
+
+    /**
+     * 获取当前任务数
+     * @param bool $fast true:通过计数器获取
+     *                   false:使用ps -ef统计 速度略慢
+     * @return int
+     */
+    public static function currentTaskNumber(bool $fast = true)
+    {
+        if ($fast) {
+            return self::getCurrentTaskNumber();
+        } else {
+            $command = new Command('ps -ef');
+            $command->pipe(new Command('grep ' . self::TASK_RUN_SCRIPT))
+                ->pipe(new Command('grep -v grep'))
+                ->pipe(new Command('grep -v "ps -ef"'))
+                ->pipe(new Command('wc -l'));
+
+            $ret = $command->popen('r');
+            return intval(trim($ret));
+        }
     }
 
     /**

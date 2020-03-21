@@ -30,6 +30,9 @@ for ($i = 1; $i <= 40; $i++) {
                 // 'object' => new stdClass()
             ], false
         );
+        //获取当时任务数
+        var_dump(\BaAGee\AsyncTask\TaskScheduler::currentTaskNumber(false) ==
+            \BaAGee\AsyncTask\TaskScheduler::currentTaskNumber(true));
         echo $i . ($res ? ' success' : ' failed') . PHP_EOL;
         // die;
     } catch (Exception $e) {
