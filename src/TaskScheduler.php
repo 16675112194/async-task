@@ -37,6 +37,10 @@ final class TaskScheduler
      */
     protected static $composerAutoloadFile = '';
     /**
+     * @var string 任务脚本输出目录
+     */
+    protected static $taskOutputDir = '';
+    /**
      * @var int
      */
     protected static $maxTaskCount = 50;
@@ -47,17 +51,32 @@ final class TaskScheduler
     private static $self = null;
 
     /**
-     * @param string $lockFile
-     * @param int    $maxTaskCount
+     * 初始化
+     * @param string $lockFile      文件锁的文件
+     * @param int    $maxTaskCount  最大同时运行的任务数
+     * @param string $taskOutputDir 任务输出(标准输出和错误输出)目录，为空是/dev/null
      * @return bool
      */
-    public static function init(string $lockFile, int $maxTaskCount = 50)
+    public static function init(string $lockFile, int $maxTaskCount = 50, $taskOutputDir = '')
     {
         if (self::$isInit === false) {
             self::$maxTaskCount = $maxTaskCount;
             TaskCounter::setLockFile($lockFile);
             self::$lockFile = realpath($lockFile);
-            self::$isInit   = true;
+
+            $r = false;
+            if (!empty($taskOutputDir)) {
+                if (!is_dir($taskOutputDir)) {
+                    $r = mkdir($taskOutputDir, 0777, true);
+                } else {
+                    $r = true;
+                }
+            }
+            if ($r) {
+                self::$taskOutputDir = realpath($taskOutputDir);
+            }
+
+            self::$isInit = true;
             return true;
         }
         return false;
@@ -107,15 +126,19 @@ final class TaskScheduler
      * @param $params
      * @throws \Exception
      */
-    protected function checkParams($params)
+    protected function checkParams(&$params)
     {
-        foreach ($params as $k => $v) {
+        foreach ($params as $k => &$v) {
             if (is_string($v) || is_bool($v) || is_integer($v) || is_float($v)) {
-
+                if (is_float($v)) {
+                    //浮点数转化为字符串 防止损失进度
+                    $v = strval($v);
+                }
             } else {
                 throw new \Exception('参数不合法，只允许标量数据类型');
             }
         }
+        unset($v);
     }
 
     /**
@@ -154,15 +177,7 @@ final class TaskScheduler
                     '_lock_file_'         => self::$lockFile,
                 ];
 
-                $command = new Command(PHP_BINDIR . DIRECTORY_SEPARATOR . 'php ' . self::TASK_RUN_SCRIPT);
-                foreach ($newParams as $k => $v) {
-                    $where = '--' . $k . '=' . urlencode($v);
-                    $command->append($where);
-                }
-                $command->deamon();
-                // echo $command . PHP_EOL;
-
-                $ret = $command->popen('w');
+                $ret = $this->execute($newParams, $taskClassName);
                 if ($ret == true) {
                     // 成功 加1
                     TaskCounter::setValue($val + 1);
@@ -179,6 +194,31 @@ final class TaskScheduler
         }
         TaskCounter::closeLock($resource);
         return $ret;
+    }
+
+    /**
+     * 异步执行任务脚本
+     * @param array  $params
+     * @param string $taskClassName
+     * @return bool|false|string
+     */
+    private function execute(array $params, string $taskClassName)
+    {
+        $command = new Command(PHP_BINDIR . DIRECTORY_SEPARATOR . 'php ' . self::TASK_RUN_SCRIPT);
+        foreach ($params as $k => $v) {
+            $command->append('--' . $k . '=' . base64_encode($v));
+        }
+        if (!empty(self::$taskOutputDir)) {
+            $outputFileName = str_replace('\\', '_', $taskClassName) . '.output';
+            $outputFile     = self::$taskOutputDir . DIRECTORY_SEPARATOR . $outputFileName;
+            $command->append(sprintf(">>%s 2>&1", $outputFile));
+        } else {
+            $command->append(">/dev/null 2>&1");
+        }
+        $command->deamon();
+        // echo $command . PHP_EOL;
+
+        return $command->popen('w');
     }
 
     /**

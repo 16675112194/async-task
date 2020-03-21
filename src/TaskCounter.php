@@ -87,7 +87,9 @@ final class TaskCounter
     public static function getValue()
     {
         $val = file_get_contents(self::$lockFile);
-        return intval($val);
+        $val = intval($val);
+        $val = $val <= 0 ? 0 : $val;
+        return $val;
     }
 
     /**

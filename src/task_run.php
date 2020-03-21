@@ -9,12 +9,12 @@ $paramKeys = [
 
 $receiveParams = getopt('', $paramKeys);
 array_walk($receiveParams, function (&$v) {
-    $v = urldecode($v);
+    $v = base64_decode($v);
 });
 
-$lockFile = $receiveParams['_lock_file_'];
-register_shutdown_function(function () use ($lockFile) {
-    \BaAGee\AsyncTask\TaskCounter::setLockFile($lockFile);
+$__lock_file__nscghwerufhpefjiwgywe7_ = $receiveParams['_lock_file_'];
+register_shutdown_function(function () use ($__lock_file__nscghwerufhpefjiwgywe7_) {
+    \BaAGee\AsyncTask\TaskCounter::setLockFile($__lock_file__nscghwerufhpefjiwgywe7_);
     $resource = \BaAGee\AsyncTask\TaskCounter::getLockResource();
     $lock     = \BaAGee\AsyncTask\TaskCounter::getLock($resource, true);
     if ($lock) {
