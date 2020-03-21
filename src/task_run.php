@@ -31,9 +31,6 @@ $taskParamsArr = json_decode($receiveParams['_task_params_'], true) ?? [];
 /**
  * @var $task BaAGee\AsyncTask\TaskBase
  */
-try {
-    $task = new $receiveParams['_task_class_name_']();
-    $task->run($taskParamsArr);
-} catch (\Throwable $e) {
-    error_log(sprintf("Task error:%s file:%s line:%d", $e->getMessage(), $e->getFile(), $e->getLine()));
-}
+$task = new $receiveParams['_task_class_name_']();
+$task->run($taskParamsArr);
+exit(0);
