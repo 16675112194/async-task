@@ -18,7 +18,11 @@ register_shutdown_function(function () use ($__lock_file__nscghwerufhpefjiwgywe7
     $resource = \BaAGee\AsyncTask\TaskCounter::getLockResource();
     $lock     = \BaAGee\AsyncTask\TaskCounter::getLock($resource, true);
     if ($lock) {
-        $val = \BaAGee\AsyncTask\TaskCounter::getValue();
+        $val  = $val1 = \BaAGee\AsyncTask\TaskScheduler::currentTaskNumber(true);
+        $val2 = \BaAGee\AsyncTask\TaskScheduler::currentTaskNumber(false);
+        if ($val1 != $val2) {
+            $val = $val2;
+        }
         \BaAGee\AsyncTask\TaskCounter::setValue($val - 1);
         \BaAGee\AsyncTask\TaskCounter::unLock($resource);
     }
