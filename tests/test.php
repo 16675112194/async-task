@@ -19,7 +19,7 @@ for ($i = 1; $i <= 40; $i++) {
             \BaAGee\AsyncTask\Test\TestTask::class,
             [
                 'name'   => 'task_' . $i,
-                'age'    => mt_rand(2, 4),
+                'age'    => mt_rand(1, 5),
                 'string' => "hello 哈哈",
                 'int'    => mt_rand(100000, 99999999),
                 'float'  => 3.1498765467689801,
@@ -28,7 +28,7 @@ for ($i = 1; $i <= 40; $i++) {
                 // 不允许的参数类型
                 // 'array'  => ['sdfgs', 2354],
                 // 'object' => new stdClass()
-            ], false
+            ], false, 2
         );
         //获取当时任务数
         var_dump(\BaAGee\AsyncTask\TaskScheduler::currentTaskNumber(false) ==
