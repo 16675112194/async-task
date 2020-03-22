@@ -147,10 +147,11 @@ final class TaskScheduler
      * @param array  $params        参数
      * @param bool   $blocking      是否阻塞 如果是true 会等待获得锁
      *                              false不等待获得锁，直接执行失败返回false
+     * @param int    $timeout       任务最长运行时间 单位秒 超时将主动退出
      * @return bool|false|string
      * @throws \Exception
      */
-    public function runTask(string $taskClassName, array $params = [], bool $blocking = true)
+    public function runTask(string $taskClassName, array $params = [], bool $blocking = true, int $timeout = 3600)
     {
         self::checkInit();
         $resource = TaskCounter::getLockResource();
@@ -175,6 +176,7 @@ final class TaskScheduler
                     '_task_params_'       => json_encode($params),
                     '_composer_autoload_' => $this->findComposerAutoloadFile(),
                     '_lock_file_'         => self::$lockFile,
+                    '_task_timeout_'      => $timeout,
                 ];
 
                 $ret = $this->execute($newParams, $taskClassName);
