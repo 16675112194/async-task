@@ -28,7 +28,7 @@ for ($i = 1; $i <= 40; $i++) {
                 // 不允许的参数类型
                 // 'array'  => ['sdfgs', 2354],
                 // 'object' => new stdClass()
-            ], false, 2
+            ], false
         );
         //获取当时任务数
         var_dump(\BaAGee\AsyncTask\TaskScheduler::currentTaskNumber(false) ==
