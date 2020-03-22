@@ -1,4 +1,29 @@
 <?php
+if (extension_loaded('pcntl')) {
+    function exitSignalHandler($signo)
+    {
+        switch ($signo) {
+            case SIGTERM:
+            case SIGHUP:
+            case SIGINT:
+            case SIGUSR1:
+            case SIGUSR2:
+            case SIGQUIT:
+                echo 'Receive signal: ' . $signo . ' then exit!' . PHP_EOL;
+                exit(0);
+        }
+    }
+
+    if (function_exists('\pcntl_async_signals')) {
+        \pcntl_async_signals(true);
+        pcntl_signal(SIGTERM, "exitSignalHandler");
+        pcntl_signal(SIGHUP, "exitSignalHandler");
+        pcntl_signal(SIGINT, "exitSignalHandler");
+        pcntl_signal(SIGQUIT, "exitSignalHandler");
+        pcntl_signal(SIGUSR1, "exitSignalHandler");
+        pcntl_signal(SIGUSR2, "exitSignalHandler");
+    }
+}
 
 $paramKeys = [
     '_task_class_name_:',
