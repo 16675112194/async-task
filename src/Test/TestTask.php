@@ -16,7 +16,7 @@ class TestTask extends TaskBase
     {
         sleep($params['age']);
         file_put_contents(getcwd() . "/var/tmp/" . $params['name'], var_export($params, true), LOCK_EX);
-        // sleep(100);
+        sleep(100);
         echo json_encode($params, JSON_UNESCAPED_UNICODE) . PHP_EOL;
         // throw new \Exception("c出错啦");
     }

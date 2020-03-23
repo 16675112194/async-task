@@ -16,12 +16,19 @@ if (extension_loaded('pcntl')) {
 
     if (function_exists('\pcntl_async_signals')) {
         \pcntl_async_signals(true);
-        pcntl_signal(SIGTERM, "exitSignalHandler");
-        pcntl_signal(SIGHUP, "exitSignalHandler");
-        pcntl_signal(SIGINT, "exitSignalHandler");
-        pcntl_signal(SIGQUIT, "exitSignalHandler");
-        pcntl_signal(SIGUSR1, "exitSignalHandler");
-        pcntl_signal(SIGUSR2, "exitSignalHandler");
+    } else {
+        declare(ticks=1);
+    }
+    $exitSignal = [
+        SIGTERM => 'exitSignalHandler',
+        SIGHUP  => 'exitSignalHandler',
+        SIGINT  => 'exitSignalHandler',
+        SIGQUIT => 'exitSignalHandler',
+        SIGUSR1 => 'exitSignalHandler',
+        SIGUSR2 => 'exitSignalHandler',
+    ];
+    foreach ($exitSignal as $signal => $handler) {
+        pcntl_signal($signal, $handler);
     }
 }
 
