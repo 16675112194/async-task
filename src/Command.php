@@ -23,7 +23,7 @@ final class Command
      * Command constructor.
      * @param $cmd
      */
-    public function __construct($cmd)
+    public function __construct(string $cmd)
     {
         $this->command = $cmd;
     }
