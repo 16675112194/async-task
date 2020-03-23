@@ -63,7 +63,7 @@ register_shutdown_function(function () use ($__lock_file__nscghwerufhpefjiwgywe7
 
 require $receiveParams['_composer_autoload_'];
 
-$taskParamsArr = json_decode($receiveParams['_task_params_'], true) ?? [];
+$taskParamsArr = unserialize($receiveParams['_task_params_']) ?? [];
 /**
  * @var $task BaAGee\AsyncTask\TaskBase
  */

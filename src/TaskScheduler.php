@@ -130,10 +130,6 @@ final class TaskScheduler
     {
         foreach ($params as $k => &$v) {
             if (is_string($v) || is_bool($v) || is_integer($v) || is_float($v)) {
-                if (is_float($v)) {
-                    //浮点数转化为字符串 防止损失进度
-                    $v = strval($v);
-                }
             } else {
                 throw new \Exception('参数不合法，只允许标量数据类型');
             }
@@ -172,7 +168,7 @@ final class TaskScheduler
                 }
                 $newParams = [
                     '_task_class_name_'   => $taskClassName,
-                    '_task_params_'       => json_encode($params),
+                    '_task_params_'       => serialize($params),
                     '_composer_autoload_' => $this->findComposerAutoloadFile(),
                     '_lock_file_'         => self::$lockFile,
                 ];
@@ -206,7 +202,7 @@ final class TaskScheduler
     {
         $command = new Command(PHP_BINDIR . DIRECTORY_SEPARATOR . 'php ' . self::TASK_RUN_SCRIPT);
         foreach ($params as $k => $v) {
-            $command->append('--' . $k . '=' . base64_encode($v));
+            $command->append('--' . $k . '=' . str_replace('=', '', base64_encode($v)));
         }
         if (!empty(self::$taskOutputDir)) {
             $outputFileName = str_replace('\\', '_', $taskClassName) . '.output';
