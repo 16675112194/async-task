@@ -67,7 +67,7 @@ final class TaskScheduler
             $r = false;
             if (!empty($taskOutputDir)) {
                 if (!is_dir($taskOutputDir)) {
-                    $r = mkdir($taskOutputDir, 0777, true);
+                    $r = mkdir($taskOutputDir, 0755, true);
                 } else {
                     $r = true;
                 }
