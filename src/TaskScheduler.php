@@ -22,7 +22,7 @@ final class TaskScheduler
     /**
      * 任务执行脚本
      */
-    protected const TASK_RUN_SCRIPT = __DIR__ . DIRECTORY_SEPARATOR . 'task_run.php';
+    protected const TASK_RUN_SCRIPT = __DIR__ . DIRECTORY_SEPARATOR . 'async_task.php';
 
     /**
      * @var bool
